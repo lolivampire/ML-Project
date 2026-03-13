@@ -10,6 +10,7 @@ dist/
 build/
 .eggs/
 
+
 # Virtual Environment
 venv/
 .venv/
@@ -39,3 +40,18 @@ week-*/data/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+.ipynb_checkpoints/
+week-*/data/
+*.csv
+*.xlsx
+.env
+*.env
+.vscode/
+.DS_Store
+Thumbs.db

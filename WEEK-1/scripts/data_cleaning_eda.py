@@ -74,10 +74,6 @@ def generate_eda_report(df, label: str | None = None):
 
 # ── MAIN ──────────────────────────────────────────────────────
 def main() -> None:
-    show_basic_info(df)
-
-    remove_duplicates(df)
-
     df_raw = pd.DataFrame(data)  # buat ulang dataframe untuk EDA sebelum cleaning
 
     generate_eda_report(df_raw, label="Sebelum Cleaning")

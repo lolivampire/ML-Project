@@ -6,6 +6,7 @@ import os
 #set global seaborn
 sns.set_theme(style='whitegrid')
 
+# ── CONSTANTS ──────────────────────────────────────────────────────
 np.random.seed(42)
 df = pd.DataFrame({
     'age':        np.random.normal(35, 10, 200).astype(int),
@@ -15,7 +16,10 @@ df = pd.DataFrame({
     'score':      np.random.uniform(0, 100, 200)
 })
 
+# ── FUNCTIONS ──────────────────────────────────────────────────────
+
 def plot_histogram(df, column, output_dir='./outputs/plots'):
+    """Membuat histogram untuk kolom tertentu dengan KDE."""
     # make sure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -28,6 +32,7 @@ def plot_histogram(df, column, output_dir='./outputs/plots'):
     plt.show()
 
 def plot_boxplot(df, column, output_dir='./outputs/plots'):
+    """Membuat boxplot untuk kolom tertentu."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.boxplot(x=df[column], ax=ax)
@@ -39,6 +44,7 @@ def plot_boxplot(df, column, output_dir='./outputs/plots'):
 
 #plot_scatter(df, x, y, hue, output_dir)
 def plot_scatter(df, x, y, hue=None, output_dir='./outputs/plots'):
+    """Membuat scatter plot antara dua kolom dengan opsi hue."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.scatterplot(data=df, x=x, y=y, hue=hue, ax=ax)
@@ -51,6 +57,7 @@ def plot_scatter(df, x, y, hue=None, output_dir='./outputs/plots'):
 
 #bar plot_categorical(df, column, output_dir)
 def plot_categorical(df, column, output_dir='./outputs/plots'):
+    """Membuat count plot untuk kolom kategorikal."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(x=df[column], ax=ax)
@@ -61,6 +68,7 @@ def plot_categorical(df, column, output_dir='./outputs/plots'):
     plt.show()
 
 def bar_charts(df,x,y, output_dir='./outputs/plots'):
+    """Membuat bar chart rata-rata y berdasarkan x."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.barplot(data=df, x=x, y=y, estimator='mean', ax=ax)
@@ -74,6 +82,7 @@ def bar_charts(df,x,y, output_dir='./outputs/plots'):
 
 #plot_correlation_heatmap(df, output_dir)
 def plot_correlation_heatmap(df, output_dir='./outputs/plots'):
+    """Membuat heatmap korelasi untuk kolom numerik."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(10, 8))
     corr_matrix = df.select_dtypes(include='number').corr()
@@ -92,6 +101,7 @@ def plot_correlation_heatmap(df, output_dir='./outputs/plots'):
 
 # ── MAIN ──────────────────────────────────────────────────────
 def main() -> None:
+    """Fungsi utama untuk menjalankan semua plotting."""
     plot_histogram(df, 'age', output_dir='./outputs/plots')
     plot_histogram(df, 'salary', output_dir='./outputs/plots')
     plot_boxplot(df, 'age', output_dir='./outputs/plots')
