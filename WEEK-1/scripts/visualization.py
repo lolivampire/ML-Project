@@ -18,7 +18,7 @@ df = pd.DataFrame({
 
 # ── FUNCTIONS ──────────────────────────────────────────────────────
 
-def plot_histogram(df, column, output_dir='./outputs/plots'):
+def plot_histogram(df, column, output_dir='../outputs/plots'):
     """Membuat histogram untuk kolom tertentu dengan KDE."""
     # make sure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
@@ -31,7 +31,7 @@ def plot_histogram(df, column, output_dir='./outputs/plots'):
     plt.savefig(os.path.join(output_dir, f'{column}_histogram.png'), dpi=300)
     plt.show()
 
-def plot_boxplot(df, column, output_dir='./outputs/plots'):
+def plot_boxplot(df, column, output_dir='../outputs/plots'):
     """Membuat boxplot untuk kolom tertentu."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -43,7 +43,7 @@ def plot_boxplot(df, column, output_dir='./outputs/plots'):
     plt.show()
 
 #plot_scatter(df, x, y, hue, output_dir)
-def plot_scatter(df, x, y, hue=None, output_dir='./outputs/plots'):
+def plot_scatter(df, x, y, hue=None, output_dir='../outputs/plots'):
     """Membuat scatter plot antara dua kolom dengan opsi hue."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -56,7 +56,7 @@ def plot_scatter(df, x, y, hue=None, output_dir='./outputs/plots'):
     plt.show()
 
 #bar plot_categorical(df, column, output_dir)
-def plot_categorical(df, column, output_dir='./outputs/plots'):
+def plot_categorical(df, column, output_dir='../outputs/plots'):
     """Membuat count plot untuk kolom kategorikal."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -67,7 +67,7 @@ def plot_categorical(df, column, output_dir='./outputs/plots'):
     plt.savefig(os.path.join(output_dir, f'{column}_countplot.png'), dpi=300)
     plt.show()
 
-def bar_charts(df,x,y, output_dir='./outputs/plots'):
+def bar_charts(df,x,y, output_dir='./WEEK-1/outputs/plots'):
     """Membuat bar chart rata-rata y berdasarkan x."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -81,7 +81,7 @@ def bar_charts(df,x,y, output_dir='./outputs/plots'):
     plt.show()
 
 #plot_correlation_heatmap(df, output_dir)
-def plot_correlation_heatmap(df, output_dir='./outputs/plots'):
+def plot_correlation_heatmap(df, output_dir='../outputs/plots'):
     """Membuat heatmap korelasi untuk kolom numerik."""
     os.makedirs(output_dir, exist_ok=True)
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -102,14 +102,14 @@ def plot_correlation_heatmap(df, output_dir='./outputs/plots'):
 # ── MAIN ──────────────────────────────────────────────────────
 def main() -> None:
     """Fungsi utama untuk menjalankan semua plotting."""
-    plot_histogram(df, 'age', output_dir='./outputs/plots')
-    plot_histogram(df, 'salary', output_dir='./outputs/plots')
-    plot_boxplot(df, 'age', output_dir='./outputs/plots')
-    plot_boxplot(df, 'salary', output_dir='./outputs/plots')
-    plot_scatter(df, 'age', 'salary', output_dir='./outputs/plots')
-    bar_charts(df, 'department', 'salary', output_dir='./outputs/plots')
-    plot_categorical(df, 'department', output_dir='./outputs/plots')
-    plot_correlation_heatmap(df, output_dir='./outputs/plots')
+    plot_histogram(df, 'age', output_dir='../outputs/plots')
+    plot_histogram(df, 'salary', output_dir='../outputs/plots')
+    plot_boxplot(df, 'age', output_dir='../outputs/plots')
+    plot_boxplot(df, 'salary', output_dir='../outputs/plots')
+    plot_scatter(df, 'age', 'salary', output_dir='../outputs/plots')
+    bar_charts(df, 'department', 'salary', output_dir='../outputs/plots')
+    plot_categorical(df, 'department', output_dir='../outputs/plots')
+    plot_correlation_heatmap(df, output_dir='../outputs/plots')
 
     # INSIGHT: Distribusi age vs salary tidak menunjukkan korelasi kuat.
     # Ada data anomali seperti age ~10 dengan salary <50000 yang kemungkinan
