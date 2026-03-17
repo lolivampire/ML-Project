@@ -167,5 +167,17 @@ def main() -> None:
     4. threshold 0.5        ← keputusan akhir
     5. ŷ ∈ {0, 1}          ← prediksi class label"""
 
+# Q1. Kenapa Linear Regression tidak cocok untuk masalah klasifikasi? Berikan 1 contoh konkret kenapa outputnya bermasalah.
+# Jawaban: Linear Regression menghasilkan output kontinu yang bisa berada di luar rentang [0, 1], sehingga tidak bisa langsung diinterpretasikan sebagai probabilitas. Contohnya, jika kita menggunakan Linear Regression untuk memprediksi apakah seseorang akan lulus (1) atau tidak lulus (0) berdasarkan jam belajar, model bisa saja memprediksi nilai seperti -0.5 atau 1.5, yang tidak masuk akal dalam konteks klasifikasi biner.
+
+# Q2. Sigmoid function menerima input z = -50. Kira-kira outputnya berapa, dan itu artinya apa dalam konteks klasifikasi?
+# Jawaban: Sigmoid(-50) akan menghasilkan output yang sangat mendekati 0 (sekitar 1.92874985e-22). Dalam konteks klasifikasi, ini berarti model sangat yakin bahwa input tersebut termasuk dalam kelas 0 (tidak lulus), karena probabilitasnya sangat rendah untuk kelas 1 (lulus).
+# Q3. Decision boundary muncul dari mana? Apakah kita menggambarnya manual, atau ada proses lain yang menghasilkannya?
+# Jawaban: Decision boundary muncul dari model yang kita latih. Untuk Logistic Regression, decision boundary adalah garis (atau hyperplane) di mana probabilitas prediksi adalah 0.5. Kita tidak menggambar decision boundary secara manual; melainkan, kita menghitungnya berdasarkan parameter model (w dan b) yang diperoleh dari proses training. Dalam visualisasi, kita menggunakan grid untuk mengevaluasi model di berbagai titik dan menggambar contour di mana output model berubah dari kelas 0 ke kelas 1 (probabilitas 0.5).
+# Q4. Dalam kode kamu, baris ini:
+# pythondw = (X.T @ error) / n_samples
+# error itu isinya apa? Kenapa kita hitung ini?
+# Jawaban: "error" adalah selisih antara probabilitas prediksi (y_pred) dan label sebenarnya (y). Ini menunjukkan seberapa jauh prediksi model dari nilai yang benar. Kita menghitung error ini untuk mendapatkan gradien (dw dan db) yang digunakan dalam proses update parameter (w dan b) selama training. Gradien ini memberi tahu kita arah dan besarnya perubahan yang perlu dilakukan pada parameter untuk meminimalkan loss function (Binary Cross-Entropy) dan meningkatkan akurasi model.
+
 if __name__ == "__main__":
     main()
