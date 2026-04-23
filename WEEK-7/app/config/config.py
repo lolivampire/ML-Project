@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # load_dotenv() membaca file .env dan menyimpannya di os.environ
 # override=False artinya jika env var sudah di set oleh sistem
 # jangan timpa, penting untuk production
-load_dotenv()
+load_dotenv(override=False)
 
 print("Paket dotenv berhasil diimpor dan dijalankan!")
 

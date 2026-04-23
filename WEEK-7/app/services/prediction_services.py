@@ -44,4 +44,6 @@ def process_prediction(request: PredictionRequest) -> PredictionResult:
     """
     risk_score = calculate_risk_score(request.age, request.income, request.loan_amount)
     risk_label, message = get_risk_label(risk_score)
-    return PredictionResult(risk_score, risk_label, message)
+     # Return domain object, bukan schema response
+    return PredictionResult(risk_score=risk_score, risk_label=risk_label, message=message)
+
