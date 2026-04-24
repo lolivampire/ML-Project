@@ -11,7 +11,7 @@ yang di-serialize menggunakan joblib.
 ---
 
 ## Architecture
-
+```
 Client (curl / Postman)
 │
 ▼
@@ -20,6 +20,7 @@ FastAPI app (main.py)
 ├── routers/predict.py   ← routing & validation
 ├── services/model.py    ← business logic
 └── models/rf_model.pkl  ← trained model (loaded at startup)
+```
 ---
 
 ## Installation
@@ -103,7 +104,8 @@ Setelah server berjalan, akses:
 ---
 
 ## Project Structure
-week-07/
+```
+WEEK-07/
 ├── app/
 │   ├── main.py                             ← FastAPI app + lifespan
 │   ├── routers/
@@ -120,7 +122,7 @@ week-07/
 ├── .env.example                            ← template env variables
 ├── requirements.txt                        ← dependencies
 └── README.md
-
+```
 ---
 
 ## Notes
