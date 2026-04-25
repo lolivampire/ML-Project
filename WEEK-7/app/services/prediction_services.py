@@ -28,9 +28,11 @@ def get_risk_label(risk_score: float) -> str:
     Konversi skor numerik ke label dan pesan yang bisa dibaca manusia.
     Return tuple: (label, message)
     """
-    if risk_score < 0.3:
+    batas_resiko_rendah = 0.3
+    batas_resiko_sedang = 0.6
+    if risk_score < batas_resiko_rendah:
         return "LOW", "Profil risiko rendah. Kemungkinan besar disetujui."
-    elif risk_score < 0.6:
+    elif risk_score < batas_resiko_sedang:
         return "MEDIUM", "Profil risiko sedang. Harap diperhatikan dan evluasi lanjut."
     else:
         return "HIGH", "Profil risiko tinggi. Kemungkinan ditolak."

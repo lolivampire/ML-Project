@@ -11,4 +11,5 @@ def main():
     print(f"DEBUG: {DEBUG} (type: {type(DEBUG).__name__})")
     print(f"PORT: {PORT} (type: {type(PORT).__name__})")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": 
+    main()

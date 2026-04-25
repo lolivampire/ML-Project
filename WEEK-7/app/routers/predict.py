@@ -65,7 +65,7 @@ def predict_risk(request: PredictionRequest):
              summary="Delete id",
              responses={204: {"description": "Model berhasil direset"}})
 def delete_id():
-    return {"deleted": True}
+    return None
 
 @router.get(
     "/health",
