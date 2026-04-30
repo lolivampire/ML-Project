@@ -12,10 +12,9 @@
 
 ## About
 
-This API predicts credit risk scores from applicant financial data using a
-trained scikit-learn model. It accepts structured input (income, debt ratio,
-credit history), runs preprocessing and inference, and returns a risk score
-with a confidence label — all in under 200ms.
+This API predicts credit risk probability from applicant financial features
+using a trained scikit-learn pipeline. Input 4 numeric features, get back a
+binary prediction (0/1) and confidence score — all in under 200ms.
 
 Built as Project 1 of a 24-week ML Engineering roadmap.
 
@@ -48,34 +47,44 @@ Interactive docs: `http://localhost:8000/docs`
 
 ### POST /predict
 
-Predicts credit risk for a single applicant.
+Predicts probability from features
 
 **Request:**
 ```bash
 curl -X POST https://ml-project-production-f8a9.up.railway.app/predict \
   -H "Content-Type: application/json" \
   -d '{
-    "age": 35,
-    "income": 65000,
-    "debt_ratio": 0.32,
-    "credit_score": 720,
-    "years_employed": 8
-  }'
+  "feature_1": 1.5,
+  "feature_2": -0.5,
+  "feature_3": 2.1,
+  "feature_4": 0.8
+}'
 ```
 
 **Response (from production):**
 ```json
 {
-  "risk_score": 0.12,
-  "risk_label": "LOW",
-  "confidence": 0.89,
-  "processing_time_ms": 147
+    "prediction": 1,
+    "probability": 0.9749037006066681,
+    "model_version": "pipe_v1"
 }
 ```
+**Response legend:**
+- `prediction`: `1` = high risk, `0` = low risk
+- `probability`: confidence score (0.0 – 1.0)
+- `model_version`: model identifier for traceability
 
 ### GET /health
 
 Returns API status and model information.
+**Response:**
+```json
+{
+  "status": "ok",
+  "model": "pipe_v1"
+}
+```
+
 
 ## Limitations & Known Issues
 
