@@ -18,7 +18,9 @@ async def predict(payload: PredictionRequest, request: Request):
     try:
         # EKSTRAKSI DINAMIS: Ubah semua field di Pydantic menjadi list.
         # Jika besok fiturnya nambah jadi 10, kode router ini TIDAK PERLU diubah!
-        features = list(payload.model_dump().values())
+        # Eksplisit ambil hanya feature fields
+        FEATURE_FIELDS = ["feature_1", "feature_2", "feature_3", "feature_4"]
+        features = [payload.model_dump()[f] for f in FEATURE_FIELDS]
         
         # Ambil service model yang sudah di-load di startup
         model_service = request.app.state.model_service
