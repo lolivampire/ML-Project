@@ -36,6 +36,10 @@ app = FastAPI(
 # Register router
 app.include_router(predict.router)
 
-@app.get("/health", tags=["system"])
-def health_check():
+@app.get("/health", tags=["system"], summary="Check API and model status")
+async def health_check():
+    """
+    Returns current API status and loaded model version.
+    Use this to verify the service is running before sending predictions.
+    """
     return {"status": "ok", "version": settings.APP_VERSION}

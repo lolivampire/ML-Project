@@ -5,10 +5,15 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["prediction"])
 
-@router.post("/predict", response_model=PredictionResponse)
-def predict(payload: PredictionRequest, request: Request):
+@router.post("/predict", response_model=PredictionResponse, summary="Predict binary class from synthetic features")
+async def predict(payload: PredictionRequest, request: Request):
     """
-    Endpoint prediksi utama.
+    Runs inference on 4 standardized synthetic features using a
+    trained scikit-learn pipeline.
+
+    Returns a binary prediction (0 or 1) and confidence probability.
+    Model was trained on make_classification synthetic data (500 samples,
+    4 features, 3 informative, 1 redundant).
     """
     try:
         # EKSTRAKSI DINAMIS: Ubah semua field di Pydantic menjadi list.
