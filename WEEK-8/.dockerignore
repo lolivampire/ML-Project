@@ -1,0 +1,31 @@
+# Virtual environment — ratusan MB, tidak relevan di container
+venv/
+.venv/
+env/
+
+# Python cache — hasil compile bytecode, di-generate ulang otomatis
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment variables — TIDAK BOLEH masuk image
+.env
+*.env
+
+# Git history — tidak dibutuhkan di runtime
+.git/
+.gitignore
+
+# Editor dan OS artifacts
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Notebook dan data eksperimen — tidak relevan untuk API
+notebooks/
+*.ipynb
+*.csv
+*.xlsx
+
+# Pytest cache
+.pytest_cache/

@@ -43,3 +43,5 @@ async def health_check():
     Use this to verify the service is running before sending predictions.
     """
     return {"status": "ok", "version": settings.APP_VERSION}
+
+#iniadalahkomentaruntuktestingdockerimage

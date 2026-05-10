@@ -28,8 +28,9 @@ Built as Project 1 of a 24-week ML Engineering roadmap.
 | API Framework | FastAPI |
 | ML Model | scikit-learn Pipeline |
 | Serialization | joblib |
+| Containerization | Docker (python:3.11-slim) |  ← tambah ini
 | Deployment | Railway (free tier) |
-| Testing | Postman + custom load tester | 
+| Testing | Postman + custom load tester |
 
 ## Quick Start
 
@@ -42,6 +43,34 @@ uvicorn app.main:app --reload
 
 API will be available at `http://localhost:8000`  
 Interactive docs: `http://localhost:8000/docs`
+
+## 🐳 Docker
+
+### Build & Run (Local)
+
+```bash
+docker build -t risk-scoring-api:v1 .
+docker run -d -p 8000:8000 --name risk-api risk-scoring-api:v1
+```
+
+API: `http://localhost:8000` | Docs: `http://localhost:8000/docs`
+
+### Useful Commands
+
+```bash
+docker logs risk-api        # lihat log
+docker ps                   # cek container running
+docker rm -f risk-api       # stop & hapus container
+docker images risk-scoring-api  # cek ukuran image
+```
+
+### Image Info
+
+| Property | Value |
+|----------|-------|
+| Base image | `python:3.11-slim` |
+| Exposed port | `8000` |
+| Process | `uvicorn` (PID 1, exec form) |
 
 ## API Reference
 
