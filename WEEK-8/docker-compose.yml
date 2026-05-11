@@ -1,0 +1,48 @@
+# docker-compose.yml
+# Week 10 Day 01 — Single service compose untuk Risk Scoring API
+
+version: "3.9"
+
+services:
+  risk-api:
+    # Build dari Dockerfile di root project
+    build:
+      context: .           # Direktori build context (di mana Dockerfile berada)
+      dockerfile: Dockerfile  # Nama file Dockerfile (eksplisit lebih baik)
+
+    # Nama container yang akan muncul di `docker ps`
+    container_name: risk-scoring-api
+
+    # Port mapping: akses dari host via port 8000
+    ports:
+      - "8000:8000"
+
+    # Environment variables langsung di compose
+    # Untuk credentials, gunakan env_file (lihat bawah)
+    environment:
+      - APP_ENV=development
+      - LOG_LEVEL=INFO
+
+    # Atau load dari .env file (uncomment jika pakai credentials)
+    # env_file:
+    #   - .env
+
+    # Named volume untuk persist logs
+    volumes:
+      - api-logs:/app/logs
+
+    # Restart otomatis jika crash, kecuali dihentikan manual
+    restart: unless-stopped
+
+    # Healthcheck: Compose tahu container "sehat" atau tidak
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s    # Cek setiap 30 detik
+      timeout: 10s     # Tunggu max 10 detik per cek
+      retries: 3       # 3x gagal = container dinyatakan unhealthy
+      start_period: 40s  # Jangan cek di 40 detik pertama (app masih starting)
+
+# Deklarasi named volumes yang dipakai di atas
+volumes:
+  api-logs:
+    driver: local     # Disimpan di Docker-managed storage di host
