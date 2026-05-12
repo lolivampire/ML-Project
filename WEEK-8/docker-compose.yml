@@ -1,48 +1,38 @@
 # docker-compose.yml
 # Week 10 Day 01 — Single service compose untuk Risk Scoring API
+# Week 10 Day 02 — Multi-service Compose + Networking
+# Risk Scoring API + Redis
 
 version: "3.9"
 
 services:
-  risk-api:
-    # Build dari Dockerfile di root project
-    build:
-      context: .           # Direktori build context (di mana Dockerfile berada)
-      dockerfile: Dockerfile  # Nama file Dockerfile (eksplisit lebih baik)
 
-    # Nama container yang akan muncul di `docker ps`
-    container_name: risk-scoring-api
-
-    # Port mapping: akses dari host via port 8000
+  # ── SERVICE 1: FastAPI Risk Scoring API ──────────────────
+  api:
+    build: .                          # build dari Dockerfile di root project
+    container_name: risk_api
     ports:
-      - "8000:8000"
-
-    # Environment variables langsung di compose
-    # Untuk credentials, gunakan env_file (lihat bawah)
+      - "8000:8000"                   # expose ke host; redis TIDAK perlu ini
     environment:
-      - APP_ENV=development
-      - LOG_LEVEL=INFO
-
-    # Atau load dari .env file (uncomment jika pakai credentials)
-    # env_file:
-    #   - .env
-
-    # Named volume untuk persist logs
+      - REDIS_HOST=redis              # ← service name, bukan IP; DNS resolve otomatis
+      - REDIS_PORT=6379
     volumes:
-      - api-logs:/app/logs
-
-    # Restart otomatis jika crash, kecuali dihentikan manual
+      - ./logs:/app/logs              # bind mount untuk dev logging
+    depends_on:
+      - redis                         # api start SETELAH redis container ready
     restart: unless-stopped
 
-    # Healthcheck: Compose tahu container "sehat" atau tidak
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s    # Cek setiap 30 detik
-      timeout: 10s     # Tunggu max 10 detik per cek
-      retries: 3       # 3x gagal = container dinyatakan unhealthy
-      start_period: 40s  # Jangan cek di 40 detik pertama (app masih starting)
+  # ── SERVICE 2: Redis ─────────────────────────────────────
+  redis:
+    image: redis:7-alpine             # pakai alpine: image kecil, ~30MB
+    container_name: risk_redis
+    ports:
+      - "6379:6379"                   # opsional: expose ke host untuk debug via redis-cli
+    volumes:
+      - redis-data:/data              # named volume: data persist meski container restart
+    restart: unless-stopped
+    command: redis-server --appendonly yes   # AOF persistence: setiap write dicatat ke disk
 
-# Deklarasi named volumes yang dipakai di atas
+# ── VOLUMES ──────────────────────────────────────────────────
 volumes:
-  api-logs:
-    driver: local     # Disimpan di Docker-managed storage di host
+  redis-data:                         # Docker-managed volume, tidak terhapus saat down
