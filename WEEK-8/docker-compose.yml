@@ -1,23 +1,23 @@
 # docker-compose.yml
 # Week 10 Day 01 — Single service compose untuk Risk Scoring API
 # Week 10 Day 02 — Multi-service Compose + Networking
+# Week 10 Day 03 — Volume Mounting & Data Persistence
 # Risk Scoring API + Redis
 
-version: "3.9"
-
+name: ml-risk-api    # ← nama project explicit, tidak bergantung nama folder
 services:
 
   # ── SERVICE 1: FastAPI Risk Scoring API ──────────────────
   api:
     build: .                          # build dari Dockerfile di root project
     container_name: risk_api
-    ports:
-      - "8000:8000"                   # expose ke host; redis TIDAK perlu ini
     environment:
       - REDIS_HOST=redis              # ← service name, bukan IP; DNS resolve otomatis
-      - REDIS_PORT=6379
+      - LOG_LEVEL=info                # ← diambil dari .env
     volumes:
-      - ./logs:/app/logs              # bind mount untuk dev logging
+      # BIND MOUNT: log dari container bisa langsung dibaca di host
+      # Cocok untuk dev karena kamu bisa `tail -f logs/app.log`
+      - ./logs:/app/logs
     depends_on:
       - redis                         # api start SETELAH redis container ready
     restart: unless-stopped
