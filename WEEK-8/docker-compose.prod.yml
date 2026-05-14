@@ -1,0 +1,13 @@
+# docker-compose.prod.yml — OVERRIDE PROD
+# Digunakan: docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+
+services:
+  api:
+    # Prod: TIDAK ada bind mount — kode dari image, immutable
+    ports:
+      - "8000:8000"           # atau bisa via reverse proxy, tidak expose langsung
+    restart: unless-stopped   # auto-restart setelah crash atau reboot
+
+  redis:
+    # Prod: TIDAK expose port Redis ke host — tidak perlu, berbahaya
+    restart: unless-stopped

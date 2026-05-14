@@ -1,0 +1,18 @@
+# docker-compose.dev.yml — OVERRIDE DEV
+# Digunakan: docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up
+
+services:
+  api:
+    # Dev: bind mount kode supaya hot reload tanpa rebuild image
+    volumes:
+      - ./app:/app/app        # kode ter-mount langsung dari host
+      - ./app/model:/app/model  # model juga
+    ports:
+      - "8000:8000"           # expose API ke localhost
+    # Dev: restart: no supaya kita sadar kalau crash
+    restart: "no"
+
+  redis:
+    ports:
+      - "6379:6379"    # Dev: expose Redis agar bisa debug via RedisInsight
+    restart: "no"

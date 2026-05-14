@@ -2,7 +2,10 @@
 # Week 10 Day 01 — Single service compose untuk Risk Scoring API
 # Week 10 Day 02 — Multi-service Compose + Networking
 # Week 10 Day 03 — Volume Mounting & Data Persistence
+# Week 10 Day 04 - Environment Variables & Secrets Management dalam Compose
 # Risk Scoring API + Redis
+# Digunakan sebagai fondasi. Selalu digabung dengan override file.
+# Jangan jalankan sendiri: pakai docker-compose -f ... -f ...
 
 name: ml-risk-api    # ← nama project explicit, tidak bergantung nama folder
 services:
@@ -12,8 +15,14 @@ services:
     build: .                          # build dari Dockerfile di root project
     container_name: risk_api
     environment:
-      - REDIS_HOST=redis              # ← service name, bukan IP; DNS resolve otomatis
-      - LOG_LEVEL=info                # ← diambil dari .env
+      - APP_NAME=${APP_NAME}
+      - DEBUG=${DEBUG}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - API_KEY=${API_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MODEL_PATH=${MODEL_PATH}
     volumes:
       # BIND MOUNT: log dari container bisa langsung dibaca di host
       # Cocok untuk dev karena kamu bisa `tail -f logs/app.log`
@@ -21,17 +30,32 @@ services:
     depends_on:
       - redis                         # api start SETELAH redis container ready
     restart: unless-stopped
+    networks: 
+      - backend                  # network custom: backend
 
   # ── SERVICE 2: Redis ─────────────────────────────────────
   redis:
     image: redis:7-alpine             # pakai alpine: image kecil, ~30MB
     container_name: risk_redis
-    ports:
-      - "6379:6379"                   # opsional: expose ke host untuk debug via redis-cli
     volumes:
       - redis-data:/data              # named volume: data persist meski container restart
     restart: unless-stopped
-    command: redis-server --appendonly yes   # AOF persistence: setiap write dicatat ke disk
+    # password dari env var — tidak hardcoded
+    command: >
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ];
+             then redis-server --requirepass $$REDIS_PASSWORD --appendonly yes;
+             else redis-server --appendonly yes;
+             fi'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - backend
+
+
+# ── NETWORK ────────────────────────────────────────────────
+networks:
+  backend:
+    driver: bridge
 
 # ── VOLUMES ──────────────────────────────────────────────────
 volumes:

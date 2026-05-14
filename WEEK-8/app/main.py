@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- STARTUP ---
-    logger.info(f"[STARTUP] Risk Scoring API v{settings.APP_VERSION} starting...")
+    logger.info(f"[STARTUP] Risk Scoring API v{settings.app_version} starting...")
     
     # Instansiasi dan load model
-    model_service = ModelService(settings.MODEL_PATH, settings.APP_VERSION)
+    model_service = ModelService(settings.model_path, settings.app_version)
     model_service.load_model()
     
     # Simpan di app state agar bisa diakses oleh router
@@ -28,8 +28,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Risk Scoring API",
-    description="ML API for risk scoring — Phase 2 Project 1",
-    version=settings.APP_VERSION,
+    description="ML API for risk scoring  EPhase 2 Project 1",
+    version=settings.app_version,
     lifespan=lifespan
 )
 
@@ -42,6 +42,6 @@ async def health_check():
     Returns current API status and loaded model version.
     Use this to verify the service is running before sending predictions.
     """
-    return {"status": "ok", "version": settings.APP_VERSION}
+    return {"status": "ok", "version": settings.app_version}
 
 #iniadalahkomentaruntuktestingdockerimage
