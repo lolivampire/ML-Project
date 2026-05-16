@@ -3,35 +3,42 @@
 # Week 10 Day 02 — Multi-service Compose + Networking
 # Week 10 Day 03 — Volume Mounting & Data Persistence
 # Week 10 Day 04 - Environment Variables & Secrets Management dalam Compose
+# Week 10 Day 05 - Health Checks
 # Risk Scoring API + Redis
 # Digunakan sebagai fondasi. Selalu digabung dengan override file.
 # Jangan jalankan sendiri: pakai docker-compose -f ... -f ...
 
 name: ml-risk-api    # ← nama project explicit, tidak bergantung nama folder
+
 services:
 
   # ── SERVICE 1: FastAPI Risk Scoring API ──────────────────
   api:
     build: .                          # build dari Dockerfile di root project
     container_name: risk_api
-    environment:
-      - APP_NAME=${APP_NAME}
-      - DEBUG=${DEBUG}
-      - LOG_LEVEL=${LOG_LEVEL}
-      - API_KEY=${API_KEY}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - MODEL_PATH=${MODEL_PATH}
+    env_file:
+      - .env  
     volumes:
       # BIND MOUNT: log dari container bisa langsung dibaca di host
       # Cocok untuk dev karena kamu bisa `tail -f logs/app.log`
       - ./logs:/app/logs
     depends_on:
-      - redis                         # api start SETELAH redis container ready
+      redis:
+        # api start SETELAH redis container benar-benar siap menerima koneksi (healthy),
+        # bukan hanya sekadar containernya menyala.
+        condition: service_healthy
     restart: unless-stopped
     networks: 
       - backend                  # network custom: backend
+    
+    # HEALTHCHECK API: Memastikan aplikasi web benar-benar merespons
+    healthcheck:
+      # curl -f akan mengembalikan exit code non-zero jika HTTP status error (misal 500/404)
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s              # Jeda antar pengecekan
+      timeout: 10s               # Batas waktu curl menunggu respons
+      retries: 3                 # Jika gagal 3x berturut-turut, container dianggap "unhealthy"
+      start_period: 15s          # Masa tenggang saat startup awal agar tidak langsung divonis gagal
 
   # ── SERVICE 2: Redis ─────────────────────────────────────
   redis:
@@ -50,7 +57,16 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - backend
-
+      
+    # HEALTHCHECK REDIS: Memastikan database siap mengeksekusi perintah
+    healthcheck:
+      # Menggunakan redis-cli ping. Jika REDIS_PASSWORD diset, kita gunakan auth -a.
+      # Flag --no-auth-warning agar log tidak penuh dengan peringatan keamanan.
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep PONG || exit 1"]
+      interval: 10s              # Redis dicek lebih sering dibanding API
+      timeout: 5s                # Timeout lebih singkat karena Redis harusnya sangat cepat
+      retries: 5                 # Toleransi kegagalan 5x
+      start_period: 5s           # Redis boot sangat cepat, start_period cukup 5 detik
 
 # ── NETWORK ────────────────────────────────────────────────
 networks:
