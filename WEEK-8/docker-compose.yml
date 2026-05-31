@@ -34,7 +34,7 @@ services:
     # HEALTHCHECK API: Memastikan aplikasi web benar-benar merespons
     healthcheck:
       # curl -f akan mengembalikan exit code non-zero jika HTTP status error (misal 500/404)
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
       interval: 30s              # Jeda antar pengecekan
       timeout: 10s               # Batas waktu curl menunggu respons
       retries: 3                 # Jika gagal 3x berturut-turut, container dianggap "unhealthy"

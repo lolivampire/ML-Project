@@ -1,16 +1,20 @@
 # docker-compose.dev.yml
 services:
   api:
+    image: risk-api:multistage        # ← pakai image yang sudah kamu build
     env_file:
-      - .env.dev          # ← ini yang membuat variable masuk ke container
+      - .env.dev
     volumes:
       - ./app:/app/app
-      - ./app/model:/app/model
+      - ./app/model:/app/app/model    # ← fix path, konsisten dengan temuan tadi
     ports:
       - "8000:8000"
+    depends_on:
+      - redis
     restart: "no"
 
   redis:
+    image: redis:7-alpine             # ← image Redis official, alpine = ringan
     ports:
       - "6379:6379"
     restart: "no"

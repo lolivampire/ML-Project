@@ -1,57 +1,59 @@
-# ── BASE IMAGE ─────────────────────────────────────────────
-# python:3.11-slim bukan python:3.11
-# Alasannya sudah dipahami di W09D05: selisih ~870MB
-# Slim = Debian minimal, cukup untuk run Python app
-FROM python:3.11-slim
+# ================================================================
+# STAGE 1: builder
+# Tujuan: install semua dependencies, compile apa yang perlu
+# Stage ini TIDAK akan masuk ke production image
+# ================================================================
+FROM python:3.11-slim AS builder
 
-# ── WORKING DIRECTORY ──────────────────────────────────────
-# Semua perintah setelah ini dieksekusi relatif ke /app
-# Best practice: jangan kerja di root (/)
-WORKDIR /app
-
-# ── INSTALL SYSTEM DEPENDENCIES ────────────────────────────
-# Kalau app butuh library C (misal: psycopg2, atau beberapa
-# sklearn dependencies), install di sini.
-# WAJIB: apt-get clean DAN rm -rf /var/lib/apt/lists/*
-# harus dalam 1 RUN yang sama — W09D05 sudah dibahas kenapa.
-# Kalau tidak butuh system deps, hapus blok ini seluruhnya.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        libgomp1 \
-    && apt-get clean \
+# Install build dependencies — hanya dibutuhkan untuk compile
+# packages seperti numpy, pandas, scikit-learn yang punya C extension
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# ── COPY REQUIREMENTS DULU — LAYER CACHING ─────────────────
-# Ini adalah pola paling penting untuk efisiensi build.
-# Kalau hanya kode app yang berubah (bukan requirements.txt),
-# layer install pip ini di-skip — langsung pakai cache.
-# Tapi kalau COPY . . dulu, setiap perubahan kode apapun
-# akan trigger reinstall semua dependency.
+WORKDIR /build
+
+# Copy requirements dulu — manfaatkan layer caching (W09D04)
+# Jika requirements.txt tidak berubah, layer ini di-cache
 COPY requirements.txt .
 
-# ── INSTALL PYTHON DEPENDENCIES ────────────────────────────
-# --no-cache-dir: buang cache pip setelah install
-# Tidak ada gunanya simpan cache di dalam image — dead weight.
-# --upgrade pip: pastikan pip versi terbaru sebelum install
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# Install ke folder khusus: --prefix=/install
+# Semua package pergi ke /install/lib/python3.11/site-packages/
+# Ini yang akan kita copy ke production stage
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# ── COPY SOURCE CODE ───────────────────────────────────────
-# Baru sekarang copy semua kode.
-# Perubahan kode tidak trigger reinstall dependency (lihat atas).
-# File yang tidak ingin di-copy ditangani oleh .dockerignore
-COPY . .
 
-# ── EXPOSE PORT ────────────────────────────────────────────
-# Deklarasi informatif — port mana yang app listen.
-# Tidak otomatis publish port; tetap perlu -p 8000:8000 saat run.
+# ================================================================
+# STAGE 2: production
+# Tujuan: image final yang bersih dan ringan
+# Hanya berisi: Python runtime + compiled packages + app code
+# ================================================================
+FROM python:3.11-slim AS production
+
+# Set environment variables — best practice untuk Python di Docker
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Copy HANYA hasil install dari builder stage
+# gcc, build tools, cache — semua tertinggal di builder, tidak ikut
+COPY --from=builder /install /usr/local
+
+# Copy source code aplikasi
+# Ini di layer paling bawah supaya rebuild cepat saat kode berubah
+COPY app/ ./app/
+
+# Jalankan sebagai non-root user — security best practice
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
-# ── CMD: EXEC FORM, BUKAN SHELL FORM ───────────────────────
-# ["uvicorn", ...] = exec form → proses berjalan langsung
-#   sebagai PID 1, signal (SIGTERM) diterima dengan benar.
-# "uvicorn main:app" = shell form → bungkus dalam /bin/sh -c,
-#   signal tidak diteruskan dengan baik ke aplikasi.
-# --host 0.0.0.0: wajib agar container bisa diakses dari luar
-# --port 8000: eksplisit, tidak bergantung default
+# Gunakan exec form (array), bukan shell form
+# Exec form: signal langsung ke uvicorn (bisa Ctrl+C dengan benar)
+# Shell form: signal ke shell dulu, bisa ada delay
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

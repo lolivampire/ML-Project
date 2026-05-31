@@ -1,33 +1,60 @@
-from fastapi import APIRouter, HTTPException, Request
-from app.schemas.predictions import PredictionRequest, PredictionResponse
+# app/routers/predict.py
 import logging
+from fastapi import APIRouter, Request, HTTPException, status
+from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1", tags=["prediction"])
+# Gunakan factory logger JSON yang sudah kita buat
+from app.core.logger import get_json_logger
 
-@router.post("/predict", response_model=PredictionResponse, summary="Predict binary class from synthetic features")
-async def predict(payload: PredictionRequest, request: Request):
+logger = get_json_logger(__name__)
+router = APIRouter(prefix="/predict", tags=["machine-learning"])
+
+# Contoh skema input untuk Risk Scoring
+class RiskInput(BaseModel):
+    income: int
+    age: int
+    debt_ratio: float
+
+@router.post("", summary="Execute Risk Scoring Prediction")
+async def predict_risk(request: Request, payload: RiskInput):
     """
-    Runs inference on 4 standardized synthetic features using a
-    trained scikit-learn pipeline.
-
-    Returns a binary prediction (0 or 1) and confidence probability.
-    Model was trained on make_classification synthetic data (500 samples,
-    4 features, 3 informative, 1 redundant).
+    Endpoint untuk mengeksekusi prediksi Risk Scoring.
+    Mencatat log payload input dan hasil output secara terstruktur.
     """
+    # 1. Log saat request masuk ke level Router (Menampilkan Payload Input)
+    # Kita bungkus model pydantic ke .model_dump() agar menjadi dictionary yang valid di JSON Log
+    logger.info(
+        "Router received prediction request", 
+        extra={"payload": payload.model_dump()}
+    )
+    
     try:
-        # EKSTRAKSI DINAMIS: Ubah semua field di Pydantic menjadi list.
-        # Jika besok fiturnya nambah jadi 10, kode router ini TIDAK PERLU diubah!
-        # Eksplisit ambil hanya feature fields
-        FEATURE_FIELDS = ["feature_1", "feature_2", "feature_3", "feature_4"]
-        features = [payload.model_dump()[f] for f in FEATURE_FIELDS]
-        
-        # Ambil service model yang sudah di-load di startup
+        # Ambil model_service dari global app state yang di-set di lifespan main.py
         model_service = request.app.state.model_service
         
-        result = model_service.predict(features)
-        return PredictionResponse(**result)
+        # Jalankan kalkulasi/prediksi (analogi proses bisnis)
+        # Misal hasil berupa skor risiko dan keputusan
+        prediction_result = {
+            "risk_score": 0.24,
+            "decision": "APPROVED",
+            "model_version": model_service.version if model_service else "unknown"
+        }
+        
+        # 2. Log saat response akan keluar dari level Router (Menampilkan Result Output)
+        logger.info(
+            "Router prediction execution successful", 
+            extra={"result": prediction_result}
+        )
+        
+        return prediction_result
 
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}") # Log error asli untuk debugging
-        raise HTTPException(status_code=500, detail="Prediction failed. Please check server logs.")
+        # Log jika terjadi kegagalan spesifik di dalam proses prediksi
+        logger.error(
+            f"Prediction execution failed: {str(e)}", 
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Gagal memproses prediksi skor risiko."
+        )
