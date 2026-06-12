@@ -1,6 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 
@@ -14,12 +14,12 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[AnalysisRequestResponse])
-def get_all_requests(
+async def get_all_requests(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,  # Parameter untuk substring search
     status: Optional[str] = None,  # Parameter untuk exact match filter
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """Mengambil semua Analysis Requests dengan dukungan filter dinamis."""
     # 1. Buat base query
@@ -34,28 +34,31 @@ def get_all_requests(
     if status:
         stmt = stmt.where(AnalysisRequest.status == status)
 
-    # 4. Tambahkan pagination dan eksekusi
     stmt = stmt.offset(skip).limit(limit)
-    requests = db.execute(stmt).scalars().all()
     
+    # Eksekusi database di-await
+    result = await db.execute(stmt)
+    requests = result.scalars().all()
     return requests
 
+# ── GET BY ID (ASYNC) ────────────────────────────────────────────
 @router.get("/{request_id}", response_model=AnalysisRequestResponse)
-def get_request(request_id: str, db: Session = Depends(get_db)):
+async def get_request(request_id: str, db: AsyncSession = Depends(get_db)):
     """Mengambil satu request berdasarkan UUID."""
     try:
         uid = uuid.UUID(request_id)
     except ValueError:
         raise HTTPException(status_code=422, detail="Format UUID tidak valid")
 
-    # Pencarian efisien via Primary Key
-    result = db.get(AnalysisRequest, uid)
-    if not result:
+    # Pencarian database di-await
+    db_request = await db.get(AnalysisRequest, uid)
+    if not db_request:
         raise HTTPException(status_code=404, detail="Analysis Request tidak ditemukan")
-    return result
+    return db_request
 
+# ── POST CREATE (ASYNC) ──────────────────────────────────────────
 @router.post("/", response_model=AnalysisRequestResponse, status_code=status.HTTP_201_CREATED)
-def create_analysis_request(payload: AnalysisRequestCreate, db: Session = Depends(get_db)):
+async def create_analysis_request(payload: AnalysisRequestCreate, db: AsyncSession = Depends(get_db)):
     """Membuat Request Induk sekaligus Data Skenario Anaknya."""
     db_request = AnalysisRequest(
         title=payload.title,
@@ -64,7 +67,7 @@ def create_analysis_request(payload: AnalysisRequestCreate, db: Session = Depend
     )
     
     db.add(db_request)
-    db.flush() # Eksekusi INSERT ke DB untuk mendaptkan UUID induk, tapi belum di-commit!
+    await db.flush() # Eksekusi INSERT ke DB untuk mendaptkan UUID induk, tapi belum di-commit!
 
     # Memasukkan skenario anak
     for sc in payload.scenarios:
@@ -78,16 +81,14 @@ def create_analysis_request(payload: AnalysisRequestCreate, db: Session = Depend
         )
         db.add(db_scenario)
 
-    db.commit() # Kunci permanen semua perubahan (Transaksi sukses)
-    db.refresh(db_request) # Muat ulang dari database untuk mendapatkan datetime server
     return db_request
 
-# ── PATCH update ──────────────────────────────────────────────────
+# ── PATCH update ASYNC ──────────────────────────────────────────────────
 @router.patch("/{request_id}", response_model=AnalysisRequestResponse, status_code=status.HTTP_200_OK)
-def update_request(
+async def update_request(
     request_id: str, 
     payload: AnalysisRequestUpdate, 
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Melakukan update parsial (PATCH) pada title dan/atau status dari sebuah Analysis Request.
@@ -99,7 +100,7 @@ def update_request(
         raise HTTPException(status_code=422, detail="Format UUID tidak valid")
 
     # 2. Cari data di database (Skenario 404)
-    db_request = db.get(AnalysisRequest, uid)
+    db_request = await db.get(AnalysisRequest, uid)
     if not db_request:
         raise HTTPException(status_code=404, detail="Analysis Request tidak ditemukan")
 
@@ -111,27 +112,23 @@ def update_request(
     for key, value in update_data.items():
         setattr(db_request, key, value)
 
-    # 5. Simpan perubahan
-    db.commit()
-    db.refresh(db_request) # Refresh agar field updated_at otomatis bergeser
-
-    # 6. Return data terupdate (Skenario 200)
+    # Return data terupdate (Skenario 200)
     return db_request
 
+# ── DELETE (ASYNC) ──────────────────────────────────────────────────
 @router.delete("/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_request(request_id: str, db: Session = Depends(get_db)):
+async def delete_request(request_id: str, db: AsyncSession = Depends(get_db)):
     """Menghapus request dan otomatis menyapu bersih data anaknya (Cascade)."""
     try:
         uid = uuid.UUID(request_id)
     except ValueError:
         raise HTTPException(status_code=422, detail="Format UUID tidak valid")
 
-    db_request = db.get(AnalysisRequest, uid)
+    db_request = await db.get(AnalysisRequest, uid)
     if not db_request:
         raise HTTPException(status_code=404, detail="Analysis Request tidak ditemukan")
 
-    db.delete(db_request)
-    db.commit()
+    await db.delete(db_request)
     return None
 
     
