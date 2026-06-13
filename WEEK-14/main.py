@@ -1,23 +1,39 @@
-# main.py
+"""
+main.py (The Entry Point & Lifespan)
+"""
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
-from app.routers import predictions
 import logging
+from fastapi.encoders import jsonable_encoder
 
-app = FastAPI(
-    title="Data Science System API",
-    description="FastAPI + SQLAlchemy 2.0 Integration with Alembic (Async)",
-    version="1.0.0"
-)
+from app.database import async_engine 
+from app.config import settings
+from app.routers import predictions 
 
-# Setup basic logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app.include_router(predictions.router)
+# --- LIFESPAN MANAGER ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Memulai Data Science System API...")
+    yield
+    logger.info("Mematikan server, membuang sisa koneksi pool database...")
+    
+    # 2. Ubah juga pemanggilannya di sini
+    await async_engine.dispose() 
 
+app = FastAPI(
+    title=settings.app_name,
+    description="Layered Architecture with Async FastAPI",
+    version="2.0.0",
+    lifespan=lifespan
+)
+
+app.include_router(predictions.router)
 @app.get("/health", tags=["System"])
 def health_check():
     return {"status": "ok", "message": "DSS API is running perfectly"}
@@ -32,7 +48,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "success": False,
             "error_type": "Validation Error",
             "message": "Data yang dikirim tidak sesuai dengan format yang diminta.",
-            "details": exc.errors() # Menyertakan array detail error tadi
+            "details": jsonable_encoder(exc.errors()) # Menyertakan array detail error tadi
         }
     )
 
