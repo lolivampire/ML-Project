@@ -1,19 +1,24 @@
 """
 main.py (The Entry Point & Lifespan)
 """
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
-import logging
 from fastapi.encoders import jsonable_encoder
 
 from app.database import async_engine 
 from app.config import settings
-from app.routers import predictions 
+from app.routers import predictions
+from app.core.logging_config import setup_global_logging 
 
-logging.basicConfig(level=logging.INFO)
+# Konfigurasi Logging
+# 1. Jalankan konfigurasi induk
+setup_global_logging()
+
+# 2. Deklarasikan logger untuk file ini menggunakan __name__
 logger = logging.getLogger(__name__)
 
 # --- LIFESPAN MANAGER ---
@@ -42,13 +47,14 @@ def health_check():
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Menyeragamkan output error bawaan Pydantic"""
+    logger.warning(f"Request ditolak karena gagal validasi data dari {request.client.host}")
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
             "error_type": "Validation Error",
             "message": "Data yang dikirim tidak sesuai dengan format yang diminta.",
-            "details": jsonable_encoder(exc.errors()) # Menyertakan array detail error tadi
+            "details": jsonable_encoder(exc.errors()) # Menyertakan array detail error
         }
     )
 
@@ -57,7 +63,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     """Menangkap error dari PostgreSQL (misal: koneksi putus, integrity error)"""
     # Log error aslinya ke terminal server agar developer bisa investigasi
-    logger.error(f"Database error: {str(exc)}")
+    logger.error(f"Database error terjadi: {str(exc)}")
     
     # Return pesan yang aman ke client (jangan ekspos detail SQL)
     return JSONResponse(
@@ -73,7 +79,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Jaring terakhir untuk menangkap error seperti IndexError, KeyError, dll."""
-    logger.error(f"Unhandled server error: {str(exc)}")
+    logger.critical(f"Unhandled server error: {str(exc)}", exc_info=True)
     
     return JSONResponse(
         status_code=500,

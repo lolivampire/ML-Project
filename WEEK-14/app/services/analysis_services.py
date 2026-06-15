@@ -3,12 +3,16 @@
 Service memvalidasi logika, memeriksa ketersediaan data, melempar HTTP Exceptions, dan mengatur commit.
 """
 import uuid
-import asyncio
+import asyncio, logging
 from app.database import SessionLocalAsync
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.analysis_repo import AnalysisRepository
 from app.schemas.schemas import AnalysisRequestCreate, AnalysisRequestUpdate
 from app.exceptions import NotFoundException, ValidationException
+from app.core.logging_config import setup_global_logging
+
+# Konfigurasi Logging
+logger = logging.getLogger(__name__)
 
 class AnalysisService:
     @staticmethod
@@ -59,7 +63,8 @@ class AnalysisService:
     @staticmethod
     async def run_heavy_ml_computation(request_id: uuid.UUID):
         """Fungsi yang akan berjalan di latar belakang tanpa memblokir API"""
-        
+        logger.info(f"Memulai komputasi ML latar belakang untuk ID: {request_id}")
+
         # Buka koneksi database baru khusus untuk proses latar belakang
         async with SessionLocalAsync() as db:
             try:
@@ -79,6 +84,8 @@ class AnalysisService:
                 if obj_refresh:
                     await AnalysisRepository.update(db, obj_refresh, {"status": "completed"})
                     await db.commit()
+
+                logger.info(f"Selesai komputasi ML latar belakang untuk ID: {request_id}")
                     
             except Exception as e:
                 # Jika komputasi gagal, catat statusnya sebagai 'failed'
@@ -86,4 +93,4 @@ class AnalysisService:
                 if obj_fail:
                     await AnalysisRepository.update(db, obj_fail, {"status": "failed"})
                     await db.commit()
-                print(f"Background task gagal: {str(e)}")
+                logger.error(f"Background task gagal untuk ID {request_id}: {str(e)}", exc_info=True)
