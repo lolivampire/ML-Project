@@ -12,18 +12,18 @@ from fastapi.encoders import jsonable_encoder
 from app.database import async_engine 
 from app.config import settings
 from app.routers import predictions
-from app.core.logging_config import setup_global_logging 
+from app.core.logging_config import setup_global_logging
+from app.middleware.request_id import RequestIDMiddleware 
 
-# Konfigurasi Logging
-# 1. Jalankan konfigurasi induk
-setup_global_logging()
-
-# 2. Deklarasikan logger untuk file ini menggunakan __name__
+# Deklarasikan logger untuk file ini menggunakan __name__
 logger = logging.getLogger(__name__)
 
 # --- LIFESPAN MANAGER ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Konfigurasi Logging
+    # 1. Jalankan konfigurasi induk
+    setup_global_logging()
     logger.info("Memulai Data Science System API...")
     yield
     logger.info("Mematikan server, membuang sisa koneksi pool database...")
@@ -37,6 +37,10 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# Daftarkan Middleware ke dalam siklus hidup aplikasi
+app.add_middleware(RequestIDMiddleware)
+
 
 app.include_router(predictions.router)
 @app.get("/health", tags=["System"])

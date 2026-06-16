@@ -5,6 +5,15 @@ konfigurai logging
 import logging
 import sys
 
+from app.core.context import request_id_context_var
+
+class RequestIDFilter(logging.Filter):
+    """Filter untuk menyuntikkan request_id dari ContextVar ke setiap log record."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Menambahkan atribut kustom 'request_id' ke objek log
+        record.request_id = request_id_context_var.get()
+        return True
+
 def setup_global_logging(level: str = "INFO") -> None:
     """
     Konfigurasi logger standar untuk seluruh aplikasi.
@@ -21,10 +30,11 @@ def setup_global_logging(level: str = "INFO") -> None:
     handler.setLevel(getattr(logging, level.upper(), logging.INFO))
 
     formatter = logging.Formatter(
-        fmt="[%(asctime)s] [%(levelname)s] [%(name)s:%(lineno)d] - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        fmt="%(asctime)s | %(levelname)s | %(request_id)s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S"
     )
     handler.setFormatter(formatter)
+    handler.addFilter(RequestIDFilter())
     root_logger.addHandler(handler)
 
     # Matikan noise dari library external
