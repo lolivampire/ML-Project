@@ -3,7 +3,7 @@
 meneruskan dari client (Pydantic) menuju Service.
 """
 # app/routers/predictions.py
-import logging
+import logging, asyncio
 from typing import Optional
 from fastapi import APIRouter, Depends, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,7 @@ from app.database import get_db
 from app.services.analysis_services import AnalysisService
 from app.schemas.schemas import AnalysisRequestCreate, AnalysisRequestUpdate, AnalysisRequestResponse
 from app.core.logging_config import setup_global_logging
+from app.metrics import PREDICTIONS_TOTAL
 
 # Konfigurasi Logging
 logger = logging.getLogger(__name__)
@@ -33,6 +34,9 @@ async def create_prediction(
 ):  
     # Catat aktivitas
     logger.info(f"Menerima request analisis baru: '{payload.title}'")
+
+    # asumsikan model_name statis untuk sekarang, atau bisa gunakan payload.title
+    PREDICTIONS_TOTAL.labels(model_name="house_pricing_v1", status="pending").inc()
 
     result = await AnalysisService.create(db, payload)
     # Jalankan background task fire-and-forget
