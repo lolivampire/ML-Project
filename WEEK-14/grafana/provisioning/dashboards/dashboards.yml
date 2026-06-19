@@ -1,0 +1,13 @@
+# grafana/provisioning/dashboards/dashboard.yml
+apiVersion: 1
+
+providers:
+  - name: 'DSS API Dashboards'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      # Grafana akan otomatis memindai folder ini di dalam containernya
+      path: /etc/grafana/provisioning/dashboards

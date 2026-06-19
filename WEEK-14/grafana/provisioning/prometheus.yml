@@ -1,0 +1,11 @@
+# grafana/provisioning/datasources/prometheus.yml
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # Ini adalah bagian paling ajaib. Kita memanggil nama container prometheus di docker-compose
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false # Mencegah orang mengubah URL ini sembarangan lewat UI Grafana

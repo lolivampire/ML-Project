@@ -1,0 +1,30 @@
+# alertmanager/alertmanager.yml
+global:
+  resolve_timeout: 5m
+
+# Aturan Lalu Lintas (Routing)
+route:
+  group_by: ['alertname'] # Kelompokkan alarm berdasarkan nama (misal: gabungkan 10 error HighErrorRate jadi 1 pesan)
+  group_wait: 10s         # Tunggu 10 detik sebelum mengirim pesan pertama (untuk menunggu alarm lain yang mirip)
+  group_interval: 5m      # Jika ada alarm baru di kelompok yang sama, tunggu 5 menit sebelum mengirim update
+  repeat_interval: 1h     # Jika kondisi masih error, ingatkan lagi setiap 1 jam
+  
+  receiver: 'default_receiver' # Rute bawaan
+  
+  # Contoh percabangan (Routing Tree)
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: 'critical_team'
+
+# Penerima Pesan (Receivers)
+receivers:
+  - name: 'default_receiver'
+    # Karena kita belum punya server Telegram/Slack sungguhan, kita arahkan ke webhook tiruan
+    webhook_configs:
+      - url: 'http://localhost:8080/webhook'
+
+  - name: 'critical_team'
+    # Di production, kamu bisa memasukkan URL Webhook Discord/Slack milik tim SRE di sini
+    webhook_configs:
+      - url: 'http://localhost:8080/critical-webhook'

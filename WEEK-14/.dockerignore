@@ -9,3 +9,6 @@ venv/
 .env
 .pytest_cache/
 tests/
+postgres_data/
+prometheus_data/
+grafana_data/

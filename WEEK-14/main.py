@@ -1,6 +1,7 @@
 """
 main.py (The Entry Point & Lifespan)
 """
+import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -31,7 +32,8 @@ from app.metrics import MODEL_LOADED_STATUS
 resource = Resource.create({"service.name": "data-science-api"})
 provider = TracerProvider(resource=resource)
 # Mengarahkan tembakan data trace ke container Jaeger di port gRPC 4317
-exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+otel_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+exporter = OTLPSpanExporter(endpoint=otel_endpoint, insecure=True)
 provider.add_span_processor(BatchSpanProcessor(exporter))
 trace.set_tracer_provider(provider)
 
@@ -77,8 +79,6 @@ FastAPIInstrumentor.instrument_app(app)
 
 # Daftarkan Middleware metrik Prometheus yang sudah dirampingkan
 app.add_middleware(MetricsMiddleware)
-
-app.include_router(predictions.router)
 
 app.include_router(predictions.router)
 @app.get("/health", tags=["System"])

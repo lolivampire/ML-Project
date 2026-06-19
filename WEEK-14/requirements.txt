@@ -1,5 +1,5 @@
 # --- Web Framework & Server ---
-fastapi>=0.110.0
+fastapi==0.110.3
 uvicorn[standard]>=0.29.0
 
 # --- Database & ORM ---
@@ -22,7 +22,7 @@ httpx>=0.27.0
 
 # --- Prometheus ---
 prometheus-client
-prometheus-fastapi-instrumentator
+prometheus-fastapi-instrumentator>=7.0.0
 
 # --- oTel ---
 opentelemetry-api
@@ -30,3 +30,4 @@ opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 opentelemetry-exporter-otlp
 opentelemetry-instrumentation-sqlalchemy
+

@@ -1,0 +1,32 @@
+# prometheus/prometheus.yml
+
+# 1. Pengaturan Global (Detak Jantung)
+global:
+  scrape_interval: 15s     # Seberapa sering Prometheus menarik data? (Tiap 15 detik)
+  evaluation_interval: 15s # Seberapa sering Prometheus mengecek aturan alarm?
+
+# 2. File Aturan Alarm (Jebakan)
+# Memberi tahu Prometheus di mana kita menyimpan rumus matematika untuk peringatan
+rule_files:
+  - "alert_rules.yml"
+
+# 3. Konfigurasi Alertmanager (Pusat Komunikasi)
+# Ke mana Prometheus harus berteriak jika ada aturan alarm yang terpicu?
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093' # Menggunakan nama service dari docker-compose
+
+# 4. Target Scraping (Siapa saja yang mau disedot datanya?)
+scrape_configs:
+  # Target A: Memantau dirinya sendiri (Opsional tapi direkomendasikan)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Target B: Aplikasi FastAPI Kita (Bintang Utamanya)
+  - job_name: 'fastapi_app'
+    metrics_path: '/metrics'  # Endpoint bawaan dari prometheus-fastapi-instrumentator
+    static_configs:
+      - targets: ['api:8000'] # 'api' adalah nama service di docker-compose.yml
