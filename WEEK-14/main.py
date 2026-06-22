@@ -25,7 +25,8 @@ from app.config import settings
 from app.routers import predictions
 from app.core.logging_config import setup_global_logging
 from app.middleware import MetricsMiddleware
-from app.metrics import MODEL_LOADED_STATUS 
+from app.metrics import MODEL_LOADED_STATUS
+from app.routers import decision_router 
 
 # --- SETUP OPENTELEMETRY TRACER PUSAT --
 # Mendefinisikan nama service agar mudah dicari di Jaeger
@@ -80,7 +81,10 @@ FastAPIInstrumentor.instrument_app(app)
 # Daftarkan Middleware metrik Prometheus yang sudah dirampingkan
 app.add_middleware(MetricsMiddleware)
 
+
 app.include_router(predictions.router)
+app.include_router(decision_router.router)
+
 @app.get("/health", tags=["System"])
 def health_check():
     return {"status": "ok", "message": "DSS API is running perfectly"}
