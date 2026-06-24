@@ -3,6 +3,8 @@ from enum import Enum
 from typing import List, Annotated
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.schemas.simulation_schema import RecommendationOutput
+
 class RiskLevel(str, Enum):
     """Representasi tingkat toleransi risiko dalam pengambilan keputusan bisnis."""
     LOW = "low"
@@ -22,7 +24,7 @@ class MarketCondition(str, Enum):
     """Sentimen atau kondisi pasar secara makro."""
     BULL = "bull"
     BEAR = "bear"
-    FLAT = "flat"
+    NEUTRAL = "neutral"
 
 class TimeHorizon(str, Enum):
     """Jangka waktu target penyelesaian atau proyeksi."""
@@ -104,3 +106,8 @@ class DecisionInput(BaseModel):
                 "Silakan tingkatkan anggaran minimum ke Rp50,000 atau turunkan toleransi risiko."
             )
         return self
+
+class DecisionResponse(BaseModel):
+    request_id: str
+    status: str
+    data: RecommendationOutput

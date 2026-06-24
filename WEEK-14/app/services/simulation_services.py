@@ -40,7 +40,7 @@ class SimulationService:
         # Modifikasi berdasarkan kondisi pasar (Sesuai Enum MarketCondition)
         market_bonus = {
             MarketCondition.BULL: 15.0,
-            MarketCondition.FLAT: 0.0,
+            MarketCondition.NEUTRAL: 0.0,
             MarketCondition.BEAR: -15.0,
         }
         score += market_bonus.get(data.market_condition, 0.0)
