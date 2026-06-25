@@ -31,3 +31,5 @@ opentelemetry-instrumentation-fastapi
 opentelemetry-exporter-otlp
 opentelemetry-instrumentation-sqlalchemy
 
+# ---streamlit ---
+streamlit
