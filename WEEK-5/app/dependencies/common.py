@@ -2,7 +2,7 @@
 from fastapi import Header, HTTPException
 
 # Dependency yang bisa di-inject ke router manapun
-# Ini sama persis dengan yang kamu pelajari di W05D03
+# Ini sama persis dengan yang dipelajari di W05D03
 # Bedanya sekarang ada di file sendiri — reusable
 async def verify_token(x_token: str = Header(...)):
     """Cek apakah request punya token yang valid."""

@@ -29,6 +29,7 @@ async def list_items(
     pagination: dict = Depends(get_pagination),  # inject dari dependencies/
     token: str = Depends(verify_token)           # inject token check
 ):
+    
     skip = pagination["skip"]
     limit = pagination["limit"]
     items = list(fake_db.values())

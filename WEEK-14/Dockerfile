@@ -9,6 +9,8 @@ ENV PYTHONUNBUFFERED=1
 # Tentukan direktori kerja di dalam kontainer
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Salin file requirements terlebih dahulu untuk memanfaatkan layer caching Docker
 COPY requirements.txt .
 

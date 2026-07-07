@@ -9,17 +9,17 @@ import requests
 import pandas as pd
 
 # ── CONFIG ──────────────────────────────────────────────────────────
-API_BASE_URL = "http://127.0.0.1:8000/api/v1/decision"
+API_BASE_URL = "http://api:8000/api/v1/decision"
 
 # ── PAGE SETUP ──────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DSS Engine | Simulation",
-    page_icon="🧭",
+    page_icon=":chart_with_upwards_trend:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title("🧭 Decision Support System")
+st.title("Decision Support System")
 st.caption("Mesin Proyeksi Finansial dan Analisis Skenario Berbasis Risiko")
 
 # ── SESSION STATE INIT ──────────────────────────────────────────────

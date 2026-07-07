@@ -1,6 +1,7 @@
 # app/database.py
+from redis import asyncio as aioredis
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, AsyncGenerator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -70,3 +71,14 @@ class DatabaseManager:
 
 # Inisialisasi global manager untuk diimpor oleh script CLI
 db_manager = DatabaseManager(engine_instance=sync_engine)
+
+async def get_redis() -> AsyncGenerator[aioredis.Redis, None]:
+    """Dependency injection untuk client Redis Asinkronus di FastAPI."""
+    client = aioredis.Redis.from_url(
+        settings.redis_url, 
+        decode_responses=True
+    )
+    try:
+        yield client
+    finally:
+        await client.close()

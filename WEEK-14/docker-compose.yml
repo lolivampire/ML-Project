@@ -1,6 +1,3 @@
-# docker-compose.yml
-version: '3.8'
-
 services:
   # 1. Database PostgreSQL
   db:
@@ -30,12 +27,21 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql+asyncpg://admin:password123@db:5432/dss_database
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317 # Arahkan OTel ke container Jaeger
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - REDIS_URL=redis://redis:6379/0 
     depends_on:
       db:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - dss_network
+    # Healthcheck wajib ditambahkan agar Streamlit tahu kapan API siap menerima request
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # 3. Jaeger (Tracing)
   jaeger:
@@ -44,8 +50,8 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686" # Web UI
-      - "4317:4317"   # OTLP gRPC receiver
+      - "16686:16686"
+      - "4317:4317"
     networks:
       - dss_network
 
@@ -54,13 +60,13 @@ services:
     image: prom/prometheus:latest
     container_name: dss_prometheus
     volumes:
-      - ./prometheus:/etc/prometheus # Mount folder konfigurasi lokal
-      - prometheus_data:/prometheus  # Mount storage persisten
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     ports:
-      - "9090:9090" # Web UI & API
+      - "9090:9090"
     networks:
       - dss_network
     depends_on:
@@ -75,7 +81,7 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
     ports:
-      - "9093:9093" # Web UI
+      - "9093:9093"
     networks:
       - dss_network
 
@@ -84,24 +90,51 @@ services:
     image: grafana/grafana:latest
     container_name: dss_grafana
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning # Auto-setup datasource & dashboard
+      - ./grafana/provisioning:/etc/grafana/provisioning
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin # Password login Grafana
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
-      - "3000:3000" # Web UI
+      - "3000:3000"
     networks:
       - dss_network
     depends_on:
       - prometheus
 
-# Definisi Virtual Network agar semua container bisa saling panggil via nama service
+  # 7. Antarmuka Pengguna (Streamlit)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: dss_frontend
+    ports:
+      - "8501:8501"
+    networks:
+      - dss_network
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # 8. Redis
+  redis:
+    image: redis:7-alpine
+    container_name: dss_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - dss_network
+    volumes:
+      - redis_data:/data
+    # Command ini mengoptimalkan Redis sebagai mesin caching data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
 networks:
   dss_network:
     driver: bridge
 
-# Definisi Persistent Volumes agar data tidak hilang saat container direstart
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  redis_data:

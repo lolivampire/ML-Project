@@ -39,8 +39,3 @@ Saat ini belum diimplementasikan. Coming soon di v2.
 #seperti pasang papan menu di restoran
 
 app.include_router(predict.router)
-
-# @app.get("/health", tags=["System"])
-# def health_check():
-#     """Health check endpoint, wajib ada """
-#     return {"status": "ok", "version": "0.1.0"}

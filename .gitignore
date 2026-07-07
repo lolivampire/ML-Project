@@ -30,6 +30,8 @@ week-*/data/
 
 # Environment variables — JANGAN PERNAH push ini
 .env
+.env.dev
+.env.prod
 *.env
 
 # VS Code
@@ -51,6 +53,8 @@ week-*/data/
 *.csv
 *.xlsx
 .env
+.env.dev
+.env.prod
 *.env
 .vscode/
 .DS_Store

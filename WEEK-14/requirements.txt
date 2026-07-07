@@ -33,3 +33,6 @@ opentelemetry-instrumentation-sqlalchemy
 
 # ---streamlit ---
 streamlit
+
+# --Redis--
+redis

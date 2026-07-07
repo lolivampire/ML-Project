@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, List
 from decimal import Decimal
 
-from sqlalchemy import String, Numeric, ForeignKey, DateTime, func, text, Float
+from sqlalchemy import String, Numeric, ForeignKey, DateTime, func, text, Float, Column, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -168,3 +168,9 @@ class ModelVersion(Base):
     )
     def __repr__(self) -> str:
         return f"<ModelVersion id={self.id} tag={self.version_tag} accuracy={self.accuracy}>"
+
+class CompanyModel(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)

@@ -17,7 +17,6 @@ class PredictionRepository:
         record = {
             **prediction_data,
             "id": len(self._store) + 1,
-            "created_at": datetime.utcnow().isoformat(),
         }
         self._store.append(record)
         logger.debug(f"Prediksi disimpan: id={record['id']}")
